@@ -94,6 +94,7 @@ module.exports = async (req, res) => {
           background-color: #fff;
         }
         [tabindex="-1"]:focus { outline: none !important; }
+        pre { overflow-x: auto; }
       </style>`
     const content =
      `<pre>${JSON.stringify(user, null, 2)}</pre>`
@@ -128,7 +129,7 @@ module.exports = async (req, res) => {
         }
       }
 
-      new GA('UA-29874917-4');
+      new GA('UA-29874917-4')
 
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
@@ -137,14 +138,16 @@ module.exports = async (req, res) => {
 
     const html = `${doctype}${h}${css.replace(/\s+/g, ' ')}${content}${script}`
     const minify = html.replace(/\>[\s ]+\</g, '><')
-    // cache.clear()
-
     const parseUrl = parse(req.url)
+    const { pathname } = parseUrl
 
-    if (parseUrl.pathname === '/sw.js') {
+    if (pathname === '/sw.js') {
        const sw = await read('./sw.js')
         res.setHeader('Content-type', 'application/javascript')
         return sw
+    } else if (pathname === '/clear') {
+      cache.clear()
+      return 'clear'
     } else {
       return minify
     }
