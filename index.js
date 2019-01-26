@@ -1,45 +1,14 @@
+require('now-env')
 const fetch = require('node-fetch')
 const lru = require('./lib/lru')
-/*
-{
-  "current_user_url": "/user",
-  "authorizations_url": "/authorizations",
-  "code_search_url": "/search/code?q={query}{&page,per_page,sort,order}",
-  "commit_search_url": "/search/commits?q={query}{&page,per_page,sort,order}",
-  "emails_url": "/user/emails",
-  "emojis_url": "/emojis",
-  "events_url": "/events",
-  "feeds_url": "/feeds",
-  "followers_url": "/user/followers",
-  "following_url": "/user/following{/target}",
-  "gists_url": "/gists{/gist_id}",
-  "hub_url": "/hub",
-  "issue_search_url": "/search/issues?q={query}{&page,per_page,sort,order}",
-  "issues_url": "/issues",
-  "keys_url": "/user/keys",
-  "notifications_url": "/notifications",
-  "organization_repositories_url": "/orgs/{org}/repos{?type,page,per_page,sort}",
-  "organization_url": "/orgs/{org}",
-  "public_gists_url": "/gists/public",
-  "rate_limit_url": "/rate_limit",
-  "repository_url": "/repos/{owner}/{repo}",
-  "repository_search_url": "/search/repositories?q={query}{&page,per_page,sort,order}",
-  "current_user_repositories_url": "/user/repos{?type,page,per_page,sort}",
-  "starred_url": "/user/starred{/owner}{/repo}",
-  "starred_gists_url": "/gists/starred",
-  "team_url": "/teams",
-  "user_url": "/users/{user}",
-  "user_organizations_url": "/user/orgs",
-  "user_repositories_url": "/users/{user}/repos{?type,page,per_page,sort}",
-  "user_search_url": "/search/users?q={query}{&page,per_page,sort,order}"
+
+const headers = {
+  'User-Agent': 'daliborgogic',
+  'Authorization': 'Basic ' + Buffer.from('daliborgogic:' + process.env.TOKEN).toString('base64')
 }
-*/
 
 const github = async (x = '') =>
-  await (await fetch(`https://api.github.com${x}`)).json()
-
-const gist = async (username, id, file) =>
-  await (await fetch(`https://gist.githubusercontent.com/${username}/${id}/raw/${file}`)).json()
+  await (await fetch(`https://api.github.com${x}`, { headers })).json()
 
 let user
 let data
@@ -51,15 +20,16 @@ module.exports = async (reg, res) => {
   try {
     if (!cache.has('data')) {
       let [u, d] = await Promise.all([
-        await github('/users/daliborgogic'),
-        await gist('daliborgogic', 'a0b2956c0d9629ff750194ddc944a54d', 'data.json')
+        await github('/user'),
+        await github('/gists/a0b2956c0d9629ff750194ddc944a54d')
       ])
 
+      const f = await (await fetch(d.files['data.json'].raw_url)).json()
       user = u
-      data = d
+      data = f
 
       cache.set('user', u)
-      cache.set('data', d)
+      cache.set('data', f)
     } else {
       user = cache.get('user')
       data = cache.get('data')
@@ -111,7 +81,7 @@ module.exports = async (reg, res) => {
         [tabindex="-1"]:focus { outline: none !important; }
       </style>`
     const content =
-     `<pre>${JSON.stringify(manifest, null, 2)}</pre>`
+     `<pre>${JSON.stringify(user, null, 2)}</pre>`
     const script =
     `<script>
       const KEY = 'ga:user'
@@ -149,7 +119,7 @@ module.exports = async (reg, res) => {
 
     const html = `${doctype}${h}${css.replace(/\s+/g, ' ')}${content}${script}`
     const minify = html.replace(/\>[\s ]+\</g, '><')
-    cache.clear()
+    // cache.clear()
     return minify
   } catch (error) {
     return { error: error.message }
