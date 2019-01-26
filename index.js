@@ -1,5 +1,5 @@
 const fetch = require('node-fetch')
-
+const lru = require('./lib/lru')
 /*
 {
   "current_user_url": "/user",
@@ -41,18 +41,34 @@ const github = async (x = '') =>
 const gist = async (username, id, file) =>
   await (await fetch(`https://gist.githubusercontent.com/${username}/${id}/raw/${file}`)).json()
 
+let user
+let data
+let cache = lru(10000)
+
 module.exports = async (reg, res) => {
   res.setHeader('content-type', 'text/html; charset=utf-8')
 
   try {
-    const [user, data] = await Promise.all([
-      await github('/users/daliborgogic'),
-      await gist('daliborgogic', 'a0b2956c0d9629ff750194ddc944a54d', 'data.json')
-    ])
+    if (!cache.has('data')) {
+      let [u, d] = await Promise.all([
+        await github('/users/daliborgogic'),
+        await gist('daliborgogic', 'a0b2956c0d9629ff750194ddc944a54d', 'data.json')
+      ])
 
-    const { head, manifest, schema } = data
-    const { title, description } = head
+      user = u
+      data = d
 
+      cache.set('user', u)
+      cache.set('data', d)
+    } else {
+      user = cache.get('user')
+      data = cache.get('data')
+    }
+
+    let { head, manifest, schema } = data
+    let { title, description } = head
+
+    const doctype = `<!doctype html><html lang="en">`
     const h =
      `<title>${title}</title>
       <meta name="description" content="${description}">
@@ -71,14 +87,33 @@ module.exports = async (reg, res) => {
           line-height: 1.15;
           -ms-text-size-adjust: 100%;
           -webkit-text-size-adjust: 100%;
-          padding: 0 0 0 0;
+          -webkit-box-sizing: border-box;
+                  box-sizing: border-box;
+          font-size: 16px;
+          -ms-overflow-style: scrollbar;
+          -webkit-tap-highlight-color: transparent;
         }
-
+        *,
+        *::before,
+        *::after {
+          -webkit-box-sizing: inherit;
+                  box-sizing: inherit;
+        }
+        @-ms-viewport { width: device-width; }
+        body {
+          margin: 0;
+          font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+          font-size: 1rem;
+          line-height: 1.5;
+          color: #000;
+          background-color: #fff;
+        }
+        [tabindex="-1"]:focus { outline: none !important; }
       </style>`
     const content =
      `<pre>${JSON.stringify(user, null, 2)}</pre>`
 
-    const html = `<!doctype html><html lang="en">${h}${css.replace(/\s+/g, ' ')}${content}`
+    const html = `${doctype}${h}${css.replace(/\s+/g, ' ')}${content}`
     const minify = html.replace(/\>[\s ]+\</g, '><')
 
     return minify
