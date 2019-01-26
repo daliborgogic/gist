@@ -4,13 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "node_modules/.bin/micro-dev -p 3000",
-    "start": "node_modules/.bin/micro -l tcp://0.0.0.0:3000"
+    "dev": "node_modules/.bin/micro-dev -p 4000",
+    "start": "node_modules/.bin/micro -l tcp://0.0.0.0:4000"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "lit-html": "^1.0.0-rc.2",
     "micro": "^9.3.3",
     "node-fetch": "^2.3.0",
     "now-env": "^3.1.0",

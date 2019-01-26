@@ -8,7 +8,11 @@ workbox.clientsClaim()
 self.__precacheManifest = [
   {
     "url": "/",
-    "revision": "8ec255948e87eaee719289c91a4ef8e9"
+    "revision": "8ec255948e87eaee719289c91a4ef818"
+  },
+   {
+    "url": "/module.js",
+    "revision": "8ec255948e87eaee719289c91a4ef818"
   }
 ].concat(self.__precacheManifest || [])
 workbox.precaching.suppressWarnings()

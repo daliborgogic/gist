@@ -1,0 +1,7 @@
+{
+ "env": {
+    "TOKEN": "@token",
+    "USERNAME": "@username",
+    "GIST_ID": "@gist-id"
+ }
+}
