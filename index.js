@@ -43,7 +43,7 @@ const gist = async (username, id, file) =>
 
 let user
 let data
-let cache = lru(10000)
+let cache = lru(100)
 
 module.exports = async (reg, res) => {
   res.setHeader('content-type', 'text/html; charset=utf-8')
@@ -73,7 +73,7 @@ module.exports = async (reg, res) => {
      `<title>${title}</title>
       <meta name="description" content="${description}">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="manifest" href='data:application/manifest+json,${JSON.stringify(manifest)}'>
+      <link rel="manifest" href='data:application/manifest+json, ${JSON.stringify(manifest)}'>
       <meta name="twitter:card" value="summary_large_image">
       <meta property="og:image" content="https://dalibor.ams3.cdn.digitaloceanspaces.com/dlbr/summary_large_image.png">
       <meta property="og:title" content="${title}">
@@ -111,11 +111,45 @@ module.exports = async (reg, res) => {
         [tabindex="-1"]:focus { outline: none !important; }
       </style>`
     const content =
-     `<pre>${JSON.stringify(user, null, 2)}</pre>`
+     `<pre>${JSON.stringify(manifest, null, 2)}</pre>`
+    const script =
+    `<script>
+      const KEY = 'ga:user'
+      const UID = (localStorage[KEY] = localStorage[KEY] || Math.random() + '.' + Math.random())
 
-    const html = `${doctype}${h}${css.replace(/\s+/g, ' ')}${content}`
+      function encode(obj) {
+        let k
+        let str = 'https://www.google-analytics.com/collect?v=1'
+        for (k in obj) {
+          if (obj[k]) {
+            str += '&'+k+'='+ encodeURIComponent(obj[k])
+          }
+        }
+        return str
+      }
+
+      class GA {
+        constructor(ua, opts = {}) {
+          this.args = Object.assign({ tid: ua, cid: UID }, opts)
+          this.send('pageview')
+        }
+
+        send(type, opts) {
+          if (type === 'pageview' && !opts) {
+            opts = { dl: location.href, dt: document.title }
+          }
+          let obj = Object.assign({ t: type }, this.args, opts, { z: Date.now() })
+          new Image().src = encode(obj)
+        }
+      }
+
+      const ga = new GA('UA-29874917-4')
+      ga.send('pageview', { dp: to.fullPath })
+    </script>`
+
+    const html = `${doctype}${h}${css.replace(/\s+/g, ' ')}${content}${script}`
     const minify = html.replace(/\>[\s ]+\</g, '><')
-
+    cache.clear()
     return minify
   } catch (error) {
     return { error: error.message }
