@@ -1,8 +1,18 @@
 require('now-env')
 const fetch = require('node-fetch')
 const lru = require('./lib/lru')
+const { readFile } = require('fs')
+const { parse } = require('url')
 
 const { TOKEN, USERNAME, GIST_ID } = process.env
+
+const read = (path, opts = 'utf8') =>
+  new Promise((resolve, reject) => {
+    readFile(path, opts, (error, data) => {
+      if (error) reject(error)
+      else resolve(data)
+    })
+  })
 
 const headers = {
   'User-Agent': USERNAME,
@@ -16,11 +26,12 @@ let user
 let data
 let cache = lru(100)
 
-module.exports = async (reg, res) => {
+module.exports = async (req, res) => {
   res.setHeader('content-type', 'text/html; charset=utf-8')
 
   try {
     if (!cache.has('data')) {
+      console.log('MISS')
       let [u, d] = await Promise.all([
         await github('/user'),
         await github('/gists/' + GIST_ID)
@@ -33,6 +44,7 @@ module.exports = async (reg, res) => {
       cache.set('user', u)
       cache.set('data', f)
     } else {
+      console.log('HIT')
       user = cache.get('user')
       data = cache.get('data')
     }
@@ -45,7 +57,8 @@ module.exports = async (reg, res) => {
      `<title>${title}</title>
       <meta name="description" content="${description}">
       <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="manifest" href='data:application/manifest+json, ${JSON.stringify(manifest)}'>
+      <link rel="manifest" href="https://dalibor.ams3.cdn.digitaloceanspaces.com/dlbr/manifest.json">
+      <meta name="theme-color" content="#ffffff">
       <meta name="twitter:card" value="summary_large_image">
       <meta property="og:image" content="https://dalibor.ams3.cdn.digitaloceanspaces.com/dlbr/summary_large_image.png">
       <meta property="og:title" content="${title}">
@@ -115,14 +128,27 @@ module.exports = async (reg, res) => {
         }
       }
 
-      const ga = new GA('UA-29874917-4')
-      ga.send('pageview', { dp: to.fullPath })
+      new GA('UA-29874917-4');
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+      }
     </script>`
 
     const html = `${doctype}${h}${css.replace(/\s+/g, ' ')}${content}${script}`
     const minify = html.replace(/\>[\s ]+\</g, '><')
     // cache.clear()
-    return minify
+
+    const parseUrl = parse(req.url)
+
+    if (parseUrl.pathname === '/sw.js') {
+       const sw = await read('./sw.js')
+        res.setHeader('Content-type', 'application/javascript')
+        return sw
+    } else {
+      return minify
+    }
+
   } catch (error) {
     return { error: error.message }
   }

@@ -1,0 +1,14 @@
+{
+  "apps": [
+    {
+      "name": "dlbr",
+      "script": "npm",
+      "args": "start",
+      "watch": true,
+      "error_file": "./../err.log",
+      "out_file": "./../out.log",
+      "merge_logs": true,
+      "log_date_format": "DD/MM/YYYY HH:mm:ss"
+    }
+  ]
+}

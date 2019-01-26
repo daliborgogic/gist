@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "micro-dev -p 4000"
+    "dev": "node_modules/.bin/micro-dev -p 3000",
+    "start": "node_modules/.bin/micro -l tcp://0.0.0.0:3000"
   },
   "keywords": [],
   "author": "",
