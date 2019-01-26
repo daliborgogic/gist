@@ -1,0 +1,20 @@
+{
+  "name": "gist",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "micro-dev -p 4000"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "micro": "^9.3.3",
+    "node-fetch": "^2.3.0",
+    "r2": "^2.0.1"
+  },
+  "devDependencies": {
+    "micro-dev": "^3.0.0"
+  }
+}
