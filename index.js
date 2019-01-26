@@ -2,9 +2,11 @@ require('now-env')
 const fetch = require('node-fetch')
 const lru = require('./lib/lru')
 
+const { TOKEN, USERNAME, GIST_ID } = process.env
+
 const headers = {
-  'User-Agent': 'daliborgogic',
-  'Authorization': 'Basic ' + Buffer.from('daliborgogic:' + process.env.TOKEN).toString('base64')
+  'User-Agent': USERNAME,
+  'Authorization': 'Basic ' + Buffer.from(USERNAME + ':' + TOKEN).toString('base64')
 }
 
 const github = async (x = '') =>
@@ -21,7 +23,7 @@ module.exports = async (reg, res) => {
     if (!cache.has('data')) {
       let [u, d] = await Promise.all([
         await github('/user'),
-        await github('/gists/a0b2956c0d9629ff750194ddc944a54d')
+        await github('/gists/' + GIST_ID)
       ])
 
       const f = await (await fetch(d.files['data.json'].raw_url)).json()
