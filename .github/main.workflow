@@ -1,6 +1,6 @@
 workflow "New workflow" {
   on = "push"
-  resolves = ["Run deploy script"]
+  resolves = ["200"]
 }
 
 action "Run deploy script" {
@@ -10,6 +10,16 @@ action "Run deploy script" {
     "PRIVATE",
     "PUBLIC",
     "HOST",
-    "USER"
+    "USER",
   ]
+}
+
+action "200" {
+  uses = "200"
+  needs = ["Run deploy script"]
+  env = {
+    URL = "https://daliborgogic.com"
+    SECONDS_BETWEEN_CHECKS = "5"
+    MAX_TRIES = "10"
+  }
 }
