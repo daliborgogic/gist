@@ -15,7 +15,7 @@ action "Run deploy script" {
 }
 
 action "200" {
-  uses = "200"
+  uses = "daliborgogic/actions/200@master"
   needs = ["Run deploy script"]
   env = {
     URL = "https://daliborgogic.com"
