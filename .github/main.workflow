@@ -5,7 +5,7 @@ workflow "New workflow" {
 
 action "Run deploy script" {
   uses = "daliborgogic/actions/ssh@master"
-  args = "date"
+  args = "ls"
   secrets = [
     "PRIVATE",
     "PUBLIC",
