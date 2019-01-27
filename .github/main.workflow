@@ -1,11 +1,14 @@
 workflow "New workflow" {
   on = "push"
-  resolves = ["200"]
+  resolves = [
+    "200",
+    "Sleep",
+  ]
 }
 
 action "Run deploy script" {
   uses = "daliborgogic/actions/ssh@master"
-  args = "ls"
+  args = "date"
   secrets = [
     "PRIVATE",
     "PUBLIC",
@@ -22,4 +25,10 @@ action "200" {
     SECONDS_BETWEEN_CHECKS = "5"
     MAX_TRIES = "10"
   }
+}
+
+action "Sleep" {
+  uses = "daliborgogic/actions/sleep@master"
+  needs = ["Run deploy script"]
+  args = "20"
 }
