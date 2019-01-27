@@ -1,5 +1,6 @@
 workflow "New workflow" {
   on = "push"
+  resolves = ["Run deploy script"]
 }
 
 action "Run deploy script" {
