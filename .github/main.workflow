@@ -3,6 +3,7 @@ workflow "New workflow" {
   resolves = [
     "200",
     "Sleep",
+    "daliborgogic/actions/curl@master",
   ]
 }
 
@@ -31,4 +32,9 @@ action "Sleep" {
   uses = "daliborgogic/actions/sleep@master"
   needs = ["Run deploy script"]
   args = "20"
+}
+
+action "daliborgogic/actions/curl@master" {
+  uses = "daliborgogic/actions/curl@master"
+  args = "daliborgogic.com"
 }
